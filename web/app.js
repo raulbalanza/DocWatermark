@@ -423,6 +423,17 @@
     }
   });
 
+  /* ---------- settings panel ---------- */
+
+  // Keep the panel pinned only while it fits in the window; when it is taller
+  // (e.g. with "More options" open on a small screen) it scrolls with the page.
+  const STICKY_GAP = 32; // 1rem above and below
+  function fitSettingsPanel() {
+    els.form.classList.toggle('is-tall', els.form.offsetHeight > window.innerHeight - STICKY_GAP);
+  }
+  new ResizeObserver(fitSettingsPanel).observe(els.form);
+  window.addEventListener('resize', fitSettingsPanel);
+
   /* ---------- masthead guilloche ---------- */
 
   function drawGuilloche() {
