@@ -39,6 +39,10 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 FONT_CANDIDATES = [
+    # Bundled with the web app (Liberation Sans Bold, SIL OFL; same letter widths as
+    # Arial Bold), so the script and the web app give the same text on every system.
+    str(Path(__file__).resolve().parent / "web" / "fonts" / "LiberationSans-Bold.ttf"),
+    # Fallbacks if the bundled file is missing.
     # macOS
     "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
     "/System/Library/Fonts/Supplemental/Verdana Bold.ttf",

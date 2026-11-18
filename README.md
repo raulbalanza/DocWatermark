@@ -44,6 +44,34 @@ watermarked.
 The output contains no EXIF, GPS or other metadata, and the watermark is merged into the
 image pixels.
 
+## Web app
+
+`web/` holds a browser version of `watermark_id.py` with the same options and algorithm.
+It runs fully client-side, with no backend, build step or dependencies, and makes no
+network requests: images never leave the browser.
+
+Open `web/index.html` directly, or serve the folder as static files (e.g. GitHub Pages):
+
+```sh
+python -m http.server -d web 8000   # then open http://localhost:8000
+```
+
+Drop, choose or paste images, type who the copy is for, and download each result or all of
+them as a .zip. The preview updates as you change the options. **More options** has the
+equivalents of `--opacity`, `--spacing`, `--angle`, `--font-size`, `--font`, `--no-lines`,
+`--max-side`, `--quality` and `--seed`, plus the output format.
+
+Both the web app and `watermark_id.py` use the bundled font
+`web/fonts/LiberationSans-Bold.ttf` (Liberation Sans 2.1.5, SIL Open Font License 1.1,
+license alongside it), so the text looks the same everywhere. It has the same letter widths
+as Arial Bold. A system font is only used if the file is missing or can't be loaded
+(`--font` still overrides it in the script).
+
+Differences from the script:
+- `--seed` gives repeatable output within the web app, but not the same pattern as the
+  Python script for the same number (they use different random generators).
+- Transparent areas become white instead of black.
+
 ## Sample images for testing
 
 `make_sample_id.py` creates a fake DNI marked MUESTRA / SPECIMEN. It uses the fictional

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <!-- Nothing leaves the browser: no external scripts, fonts, images or requests. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' blob: data:; font-src 'self' blob: data:; connect-src blob: data:; base-uri 'none'; form-action 'none'">
+  <title>ID Watermark</title>
+  <meta name="description" content="Watermark photos and scans of a DNI or passport in your browser. Nothing is uploaded.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='3' y='7' width='26' height='18' rx='3' fill='%23eef2f1' stroke='%23142326' stroke-width='2'/%3E%3Cpath d='M5 21 L27 11' stroke='%23c8102e' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="masthead">
+    <svg class="guilloche" id="guilloche" aria-hidden="true" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="masthead-inner">
+      <h1>Watermark your ID copies</h1>
+      <p class="lead">
+        Mark photos or scans of a DNI or passport with who gets the copy, what it’s for and
+        when, across the whole document, as the AEPD recommends.
+        Everything happens in this browser: your images are never uploaded.
+      </p>
+    </div>
+  </header>
+
+  <main class="layout">
+    <form class="controls" id="controls" autocomplete="off" novalidate>
+      <div class="field">
+        <label for="text">Who gets this copy and what for</label>
+        <textarea id="text" rows="2" maxlength="200"
+                  placeholder="Solo para Inmobiliaria XYZ - Alquiler vivienda"></textarea>
+        <label class="check">
+          <input type="checkbox" id="withDate" checked>
+          <span>Add today’s date (<span id="today"></span>)</span>
+        </label>
+        <p class="final-text" id="finalText" aria-live="polite"></p>
+      </div>
+
+      <fieldset class="field">
+        <legend>Strength</legend>
+        <div class="segmented" role="radiogroup">
+          <label><input type="radio" name="strength" value="light" checked><span>Light</span></label>
+          <label><input type="radio" name="strength" value="medium"><span>Medium</span></label>
+          <label><input type="radio" name="strength" value="strong"><span>Strong</span></label>
+        </div>
+        <p class="hint">Sets opacity, density, text size and lines together.</p>
+      </fieldset>
+
+      <div class="field field-row">
+        <label for="color">Color</label>
+        <div class="color-pick">
+          <input type="color" id="color" value="#c8102e">
+          <button type="button" class="link" id="colorReset">Reset</button>
+        </div>
+      </div>
+      <p class="hint hint-tight">An outline in a contrasting color is added automatically.</p>
+
+      <details class="more" id="more">
+        <summary>More options</summary>
+
+        <div class="field">
+          <label for="opacity">Opacity <output id="opacityOut" for="opacity"></output></label>
+          <input type="range" id="opacity" min="0.05" max="1" step="0.01">
+        </div>
+
+        <div class="field">
+          <label for="spacing">Row spacing <output id="spacingOut" for="spacing"></output></label>
+          <input type="range" id="spacing" min="1" max="8" step="0.1">
+          <p class="hint">Space between rows, in text heights. Lower is denser.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="angle">Angle (°)</label>
+            <input type="number" id="angle" value="30" min="-180" max="180" step="1" inputmode="decimal">
+          </div>
+          <div class="field">
+            <label for="fontSize">Text size (px)</label>
+            <input type="number" id="fontSize" min="10" max="2000" step="1" placeholder="Auto" inputmode="numeric">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="fontFile">Font</label>
+          <div class="file-row">
+            <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2,font/*">
+            <button type="button" class="link" id="fontReset" hidden>Use default</button>
+          </div>
+          <p class="hint" id="fontHint">Liberation Sans Bold (included, same letter widths as Arial Bold), or your own .ttf / .otf file.</p>
+        </div>
+
+        <label class="check">
+          <input type="checkbox" id="lines" checked>
+          <span>Wavy security lines</span>
+        </label>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="maxSide">Max size (px)</label>
+            <input type="number" id="maxSide" min="100" step="1" placeholder="Original" inputmode="numeric">
+          </div>
+          <div class="field">
+            <label for="format">Save as</label>
+            <select id="format">
+              <option value="auto">Same as input</option>
+              <option value="jpg">JPEG</option>
+              <option value="png">PNG</option>
+              <option value="webp">WebP</option>
+            </select>
+          </div>
+        </div>
+        <p class="hint hint-tight">Shrinking the longest side makes the copy less useful for forgeries.</p>
+
+        <div class="field">
+          <label for="quality">JPEG/WebP quality <output id="qualityOut" for="quality"></output></label>
+          <input type="range" id="quality" min="40" max="100" step="1" value="90">
+        </div>
+
+        <div class="field">
+          <label for="seed">Pattern seed</label>
+          <div class="file-row">
+            <input type="number" id="seed" min="0" max="4294967295" step="1" placeholder="Random" inputmode="numeric">
+            <button type="button" class="button-quiet" id="reshuffle">New pattern</button>
+          </div>
+          <p class="hint">Fix a number to get the same offsets every time.</p>
+        </div>
+      </details>
+    </form>
+
+    <section class="work" aria-label="Images">
+      <div class="dropzone" id="dropzone">
+        <input type="file" id="files" accept="image/*" multiple hidden>
+        <svg class="card-outline" viewBox="0 0 86 54" aria-hidden="true">
+          <rect x="1" y="1" width="84" height="52" rx="4"/>
+          <rect x="7" y="12" width="20" height="26" rx="1.5"/>
+          <path d="M33 15h30M33 22h40M33 29h24M33 36h34M7 45h72"/>
+        </svg>
+        <p class="drop-title">Drop images here or <button type="button" class="link" id="pick">choose files</button></p>
+        <p class="hint">JPEG, PNG or WebP. You can also paste an image. Add the front and back together.</p>
+      </div>
+
+      <p class="notice" id="notice" role="status" hidden></p>
+
+      <ol class="items" id="items"></ol>
+
+      <div class="actions" id="actions" hidden>
+        <button type="button" class="button-primary" id="downloadAll">Download all as .zip</button>
+        <button type="button" class="button-quiet" id="addMore">Add more images</button>
+        <button type="button" class="button-quiet" id="clearAll">Remove all</button>
+      </div>
+      <p class="hint footnote">
+        Saved copies contain no EXIF, GPS or other metadata, and the watermark is part of the
+        image pixels. The document’s printed text is kept on top of the watermark so names and
+        numbers stay readable.
+      </p>
+    </section>
+  </main>
+
+  <template id="itemTemplate">
+    <li class="item">
+      <div class="preview"></div>
+      <div class="item-bar">
+        <div class="item-meta">
+          <span class="item-name"></span>
+          <span class="item-size hint"></span>
+        </div>
+        <div class="item-buttons">
+          <button type="button" class="button-quiet compare" aria-pressed="false">Show original</button>
+          <button type="button" class="button-primary download">Download</button>
+          <button type="button" class="button-quiet remove" aria-label="Remove">Remove</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <script src="watermark.js"></script>
+  <script src="zip.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
